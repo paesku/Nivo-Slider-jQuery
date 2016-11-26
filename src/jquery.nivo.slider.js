@@ -9,7 +9,45 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
+/*
+ TODO:
+ - Split this file into parts with single responsibilty:
+    - Slicing
+    - Effects
+    - Captions
+    
+ */
 (function ($) {
+
+    //Default settings
+    var defaults = {
+        effect: 'random',
+        slices: 15,
+        boxCols: 8,
+        boxRows: 4,
+        animSpeed: 500,
+        pauseTime: 3000,
+        startSlide: 0,
+        directionNav: true,
+        controlNav: true,
+        controlNavThumbs: false,
+        pauseOnHover: true,
+        manualAdvance: false,
+        prevText: 'Prev',
+        nextText: 'Next',
+        randomStart: false,
+        beforeChange: function () {
+        },
+        afterChange: function () {
+        },
+        slideshowEnd: function () {
+        },
+        lastSlide: function () {
+        },
+        afterLoad: function () {
+        }
+    };
+
     var NivoSlider = function (element, options) {
         // Defaults are below
         var settings = $.extend({}, $.fn.nivoSlider.defaults, options);
@@ -41,10 +79,6 @@
                 }
                 child = child.find('img:first');
             }
-            // Get img width & height
-            var childWidth = (childWidth === 0) ? child.attr('width') : child.width(),
-                childHeight = (childHeight === 0) ? child.attr('height') : child.height();
-
             if (link !== '') {
                 link.css('display', 'none');
             }
@@ -365,8 +399,21 @@
 
             // Generate random effect
             if (settings.effect === 'random') {
-                anims = new Array('sliceDownRight', 'sliceDownLeft', 'sliceUpRight', 'sliceUpLeft', 'sliceUpDown', 'sliceUpDownLeft', 'fold', 'fade',
-                    'boxRandom', 'boxRain', 'boxRainReverse', 'boxRainGrow', 'boxRainGrowReverse');
+                anims = [
+                    'sliceDownRight',
+                    'sliceDownLeft',
+                    'sliceUpRight',
+                    'sliceUpLeft',
+                    'sliceUpDown',
+                    'sliceUpDownLeft',
+                    'fold',
+                    'fade',
+                    'boxRandom',
+                    'boxRain',
+                    'boxRainReverse',
+                    'boxRainGrow',
+                    'boxRainGrowReverse'
+                ];
                 currentEffect = anims[Math.floor(Math.random() * (anims.length + 1))];
                 if (currentEffect === undefined) {
                     currentEffect = 'fade';
@@ -672,7 +719,7 @@
     };
 
     $.fn.nivoSlider = function (options) {
-        return this.each(function (key, value) {
+        return this.each(function () {
             var element = $(this);
             // Return early if this element already has a plugin instance
             if (element.data('nivoslider')) {
@@ -685,34 +732,7 @@
         });
     };
 
-    //Default settings
-    $.fn.nivoSlider.defaults = {
-        effect: 'random',
-        slices: 15,
-        boxCols: 8,
-        boxRows: 4,
-        animSpeed: 500,
-        pauseTime: 3000,
-        startSlide: 0,
-        directionNav: true,
-        controlNav: true,
-        controlNavThumbs: false,
-        pauseOnHover: true,
-        manualAdvance: false,
-        prevText: 'Prev',
-        nextText: 'Next',
-        randomStart: false,
-        beforeChange: function () {
-        },
-        afterChange: function () {
-        },
-        slideshowEnd: function () {
-        },
-        lastSlide: function () {
-        },
-        afterLoad: function () {
-        }
-    };
+    $.fn.nivoSlider.defaults = defaults;
 
     $.fn._reverse = [].reverse;
 
