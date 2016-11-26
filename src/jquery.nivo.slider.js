@@ -76,7 +76,6 @@
         this.slider = $(this.element);
         this.slider.data('nivo:vars', this.vars).addClass('nivoSlider');
         this.slider.append($('<div class="nivo-caption"></div>'));
-
         this.children = this.slider.children();
 
         var self = this;
@@ -132,7 +131,6 @@
         this.slider.append($('<div class="nivo-caption"></div>'));
 
         var nivoCaption = $('.nivo-caption', this.slider);
-        console.log(this.vars);
         var self = this;
 
         if (self.vars.currentImage.attr('title') != '' && self.vars.currentImage.attr('title') != undefined) {
@@ -360,6 +358,7 @@
             if (currentEffect === 'sliceDown' ||
                 currentEffect === 'sliceDownRight' ||
                 currentEffect === 'sliceDownLeft') {
+                console.log('sliceDownRight');
                 createSlices(self.slider, self.settings, vars);
                 timeBuff = 0;
                 i = 0;
@@ -385,7 +384,9 @@
                     timeBuff += 50;
                     i++;
                 });
-            } else if (currentEffect === 'sliceUp' || currentEffect === 'sliceUpRight' || currentEffect === 'sliceUpLeft') {
+            } else if (currentEffect === 'sliceUp' ||
+                currentEffect === 'sliceUpRight' ||
+                currentEffect === 'sliceUpLeft') {
                 createSlices(self.slider, self.settings, vars);
                 timeBuff = 0;
                 i = 0;
@@ -411,7 +412,9 @@
                     timeBuff += 50;
                     i++;
                 });
-            } else if (currentEffect === 'sliceUpDown' || currentEffect === 'sliceUpDownRight' || currentEffect === 'sliceUpDownLeft') {
+            } else if (currentEffect === 'sliceUpDown' ||
+                currentEffect === 'sliceUpDownRight' ||
+                currentEffect === 'sliceUpDownLeft') {
                 createSlices(self.slider, self.settings, vars);
                 timeBuff = 0;
                 i = 0;
@@ -534,7 +537,10 @@
                     timeBuff += 20;
                     i++;
                 });
-            } else if (currentEffect === 'boxRain' || currentEffect === 'boxRainReverse' || currentEffect === 'boxRainGrow' || currentEffect === 'boxRainGrowReverse') {
+            } else if (currentEffect === 'boxRain' ||
+                currentEffect === 'boxRainReverse' ||
+                currentEffect === 'boxRainGrow' ||
+                currentEffect === 'boxRainGrowReverse') {
                 createBoxes(self.slider, self.settings, vars);
 
                 totalBoxes = self.settings.boxCols * self.settings.boxRows;
