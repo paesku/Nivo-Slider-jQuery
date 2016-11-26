@@ -12,45 +12,54 @@
 /*
  TODO:
  - Split this file into parts with single responsibilty:
-    - Slicing
-    - Effects
-    - Captions
-    
- */
-(function ($) {
+ - Slicing
+ - Effects
+ - Captions
 
-    //Default settings
-    var defaults = {
-        effect: 'random',
-        slices: 15,
-        boxCols: 8,
-        boxRows: 4,
-        animSpeed: 500,
-        pauseTime: 3000,
-        startSlide: 0,
-        directionNav: true,
-        controlNav: true,
-        controlNavThumbs: false,
-        pauseOnHover: true,
-        manualAdvance: false,
-        prevText: 'Prev',
-        nextText: 'Next',
-        randomStart: false,
-        beforeChange: function () {
-        },
-        afterChange: function () {
-        },
-        slideshowEnd: function () {
-        },
-        lastSlide: function () {
-        },
-        afterLoad: function () {
-        }
+ */
+;(function ($, window, document, undefined) {
+    function NivoSlider(element, options) {
+        var defaults = {
+            effect: 'random',
+            slices: 15,
+            boxCols: 8,
+            boxRows: 4,
+            animSpeed: 500,
+            pauseTime: 3000,
+            startSlide: 0,
+            directionNav: true,
+            controlNav: true,
+            controlNavThumbs: false,
+            pauseOnHover: true,
+            manualAdvance: false,
+            prevText: 'Prev',
+            nextText: 'Next',
+            randomStart: false,
+            beforeChange: function () {
+            },
+            afterChange: function () {
+            },
+            slideshowEnd: function () {
+            },
+            lastSlide: function () {
+            },
+            afterLoad: function () {
+            }
+        };
+
+        this.element = element;
+        this.settings = $.extend({}, defaults, options);
+
+        this.init();
+    }
+
+    NivoSlider.prototype = {
+        init: init
     };
 
-    var NivoSlider = function (element, options) {
-        // Defaults are below
-        var settings = $.extend({}, $.fn.nivoSlider.defaults, options);
+    function init() {
+        var element = this.element;
+        var settings = this.settings;
 
         // Useful variables. Play carefully.
         var vars = {
@@ -62,7 +71,6 @@
             stop: false,
             controlNavEl: false
         };
-
         // Get this slider
         var slider = $(element);
         slider.data('nivo:vars', vars).addClass('nivoSlider');
@@ -79,6 +87,10 @@
                 }
                 child = child.find('img:first');
             }
+            // Get img width & height
+            var childWidth = (childWidth === 0) ? child.attr('width') : child.width(),
+                childHeight = (childHeight === 0) ? child.attr('height') : child.height();
+
             if (link !== '') {
                 link.css('display', 'none');
             }
@@ -399,21 +411,8 @@
 
             // Generate random effect
             if (settings.effect === 'random') {
-                anims = [
-                    'sliceDownRight',
-                    'sliceDownLeft',
-                    'sliceUpRight',
-                    'sliceUpLeft',
-                    'sliceUpDown',
-                    'sliceUpDownLeft',
-                    'fold',
-                    'fade',
-                    'boxRandom',
-                    'boxRain',
-                    'boxRainReverse',
-                    'boxRainGrow',
-                    'boxRainGrowReverse'
-                ];
+                anims = new Array('sliceDownRight', 'sliceDownLeft', 'sliceUpRight', 'sliceUpLeft', 'sliceUpDown', 'sliceUpDownLeft', 'fold', 'fade',
+                    'boxRandom', 'boxRain', 'boxRainReverse', 'boxRainGrow', 'boxRainGrowReverse');
                 currentEffect = anims[Math.floor(Math.random() * (anims.length + 1))];
                 if (currentEffect === undefined) {
                     currentEffect = 'fade';
@@ -649,7 +648,7 @@
                     var prevCol = cols;
                     for (var rows = 0; rows < settings.boxRows; rows++) {
                         if (prevCol >= 0 && prevCol < settings.boxCols) {
-                            /* Due to some weird JS bug with loop vars 
+                            /* Due to some weird JS bug with loop vars
                              being used in setTimeout, this is wrapped
                              with an anonymous function call */
                             (function (row, col, time, i, totalBoxes) {
@@ -716,7 +715,8 @@
         settings.afterLoad.call(this);
 
         return this;
-    };
+    }
+
 
     $.fn.nivoSlider = function (options) {
         return this.each(function () {
@@ -732,8 +732,6 @@
         });
     };
 
-    $.fn.nivoSlider.defaults = defaults;
-
     $.fn._reverse = [].reverse;
 
-})(jQuery);
+})(jQuery, window, document);
