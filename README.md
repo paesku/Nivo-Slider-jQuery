@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/paesku/Nivo-Slider-jQuery.svg?branch=develop)](https://travis-ci.org/paesku/Nivo-Slider-jQuery)
+
 **Maintainer's Wanted!** - Ineterested in contributing regularly to Nivo Slider development? [Get in touch](https://dev7studios.com/support/contact/)
 
 # Nivo Slider
