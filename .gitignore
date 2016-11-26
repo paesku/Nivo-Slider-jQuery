@@ -1,4 +1,7 @@
+# Node Modules #
 
-nivo-slider.sublime-project
+node_modules
 
-nivo-slider.sublime-workspace
+
+# IDE #
+.idea

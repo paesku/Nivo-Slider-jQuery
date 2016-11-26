@@ -12,5 +12,12 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/gilbitron/Nivo-Slider.git"
+  },
+  "devDependencies": {
+    "jquery": "^3.1.1",
+    "uglify-js": "^2.7.4"
+  },
+  "scripts": {
+    "build": "uglifyjs src/jquery.nivo.slider.js --comments -o dist/jquery.nivo.slider.min.js"
   }
 }
