@@ -672,7 +672,7 @@
     };
 
     $.fn.nivoSlider = function (options) {
-        return this.each(function (key, value) {
+        return this.each(function () {
             var element = $(this);
             // Return early if this element already has a plugin instance
             if (element.data('nivoslider')) {
