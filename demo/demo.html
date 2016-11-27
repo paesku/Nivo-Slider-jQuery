@@ -32,7 +32,13 @@
 <script type="text/javascript" src="../dist/jquery.nivo.slider.min.js"></script>
 <script type="text/javascript">
     $(window).on('load', function () {
-        $('#slider').nivoSlider();
+        var config = {
+            effects: 'boxRain',
+            prevText: 'Previous',
+            nextText: 'Nextious',
+            directionNav: true
+        };
+        $('#slider').nivoSlider(config);
     });
 </script>
 </body>
