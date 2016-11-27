@@ -10,6 +10,8 @@
  */
 
 ;(function ($, window, document, undefined) {
+    'use strict';
+
     function NivoSlider(element, options) {
         var defaults = {
             effect: 'random',
@@ -78,7 +80,9 @@
         this.slider.append($('<div class="nivo-caption"></div>'));
         this.children = this.slider.children();
 
-        var self = this;
+        console.log(this.vars.totalSlides);
+
+        var totalSlides = this.vars.totalSlides;
         this.children.each(function () {
             var child = $(this);
             var link = '';
@@ -93,8 +97,10 @@
                 link.css('display', 'none');
             }
             child.css('display', 'none');
-            self.vars.totalSlides++;
+            totalSlides++;
         });
+
+        this.vars.totalSlides = totalSlides;
 
         // Get initial image
         if ($(this.children[this.vars.currentSlide]).is('img')) {
@@ -128,8 +134,6 @@
     }
 
     function processCaption() {
-        this.slider.append($('<div class="nivo-caption"></div>'));
-
         var nivoCaption = $('.nivo-caption', this.slider);
         var self = this;
 
@@ -264,20 +268,14 @@
             self.settings.beforeChange.call(this);
 
             // Set current background before change
-            if (!nudge) {
+            if (!nudge || nudge === 'prev' || nudge === 'next') {
                 self.sliderImg.attr('src', vars.currentImage.attr('src'));
-            } else {
-                if (nudge === 'prev') {
-                    self.sliderImg.attr('src', vars.currentImage.attr('src'));
-                }
-                if (nudge === 'next') {
-                    self.sliderImg.attr('src', vars.currentImage.attr('src'));
-                }
             }
 
             vars.currentSlide++;
             // Trigger the slideshowEnd callback
             if (vars.currentSlide === vars.totalSlides) {
+                console.log(vars.currentSlide, 'end');
                 vars.currentSlide = 0;
                 self.settings.slideshowEnd.call(this);
             }
@@ -301,309 +299,318 @@
             self.processCaption();
 
             // Remove any slices from last transition
+            console.log('REMOVE:',  $('.nivo-slice', self.slider).remove())
             $('.nivo-slice', self.slider).remove();
 
             // Remove any boxes from last transition
             $('.nivo-box', self.slider).remove();
 
-            var currentEffect = self.settings.effect,
-                anims = '';
+            self.animations();
+        }
 
-            // Generate random effect
-            if (self.settings.effect === 'random') {
-                anims = [
-                    'sliceDownRight',
-                    'sliceDownLeft',
-                    'sliceUpRight',
-                    'sliceUpLeft',
-                    'sliceUpDown',
-                    'sliceUpDownLeft',
-                    'fold',
-                    'fade',
-                    'boxRandom',
-                    'boxRain',
-                    'boxRainReverse',
-                    'boxRainGrow',
-                    'boxRainGrowReverse'
-                ];
-                currentEffect = anims[Math.floor(Math.random() * (anims.length + 1))];
-                if (currentEffect === undefined) {
-                    currentEffect = 'fade';
-                }
+    }
+
+    function animations() {
+        // Get our vars
+        var vars = this.slider.data('nivo:vars');
+        var self = this;
+        var currentEffect = self.settings.effect,
+            anims = '';
+
+        // Generate random effect
+        if (self.settings.effect === 'random') {
+            anims = [
+                'sliceDownRight',
+                'sliceDownLeft',
+                'sliceUpRight',
+                'sliceUpLeft',
+                'sliceUpDown',
+                'sliceUpDownLeft',
+                'fold',
+                'fade',
+                'boxRandom',
+                'boxRain',
+                'boxRainReverse',
+                'boxRainGrow',
+                'boxRainGrowReverse'
+            ];
+            currentEffect = anims[Math.floor(Math.random() * (anims.length + 1))];
+            if (currentEffect === undefined) {
+                currentEffect = 'fade';
+            }
+        }
+
+        // Run random effect from specified set (eg: effect:'fold,fade')
+        if (self.settings.effect.indexOf(',') !== -1) {
+            anims = self.settings.effect.split(',');
+            currentEffect = anims[Math.floor(Math.random() * (anims.length))];
+            if (currentEffect === undefined) {
+                currentEffect = 'fade';
+            }
+        }
+
+        // Custom transition as defined by "data-transition" attribute
+        if (vars.currentImage.attr('data-transition')) {
+            currentEffect = vars.currentImage.attr('data-transition');
+        }
+
+        // Run effects
+        vars.running = true;
+        var timeBuff = 0,
+            i = 0,
+            slices = '',
+            firstSlice = '',
+            totalBoxes = '',
+            boxes = '';
+
+        if (currentEffect === 'sliceDown' ||
+            currentEffect === 'sliceDownRight' ||
+            currentEffect === 'sliceDownLeft') {
+            console.log('sliceDownRight');
+            createSlices(self.slider, self.settings, vars);
+            timeBuff = 0;
+            i = 0;
+            slices = $('.nivo-slice', self.slider);
+            if (currentEffect === 'sliceDownLeft') {
+                slices = $('.nivo-slice', self.slider);
             }
 
-            // Run random effect from specified set (eg: effect:'fold,fade')
-            if (self.settings.effect.indexOf(',') !== -1) {
-                anims = self.settings.effect.split(',');
-                currentEffect = anims[Math.floor(Math.random() * (anims.length))];
-                if (currentEffect === undefined) {
-                    currentEffect = 'fade';
+            slices.each(function () {
+                var slice = $(this);
+                slice.css({'top': '0px'});
+                if (i === self.settings.slices - 1) {
+                    setTimeout(function () {
+                        slice.animate({opacity: '1.0'}, self.settings.animSpeed, '', function () {
+                            self.slider.trigger('nivo:animFinished');
+                        });
+                    }, (100 + timeBuff));
+                } else {
+                    setTimeout(function () {
+                        slice.animate({opacity: '1.0'}, self.settings.animSpeed);
+                    }, (100 + timeBuff));
                 }
+                timeBuff += 50;
+                i++;
+            });
+        } else if (currentEffect === 'sliceUp' ||
+            currentEffect === 'sliceUpRight' ||
+            currentEffect === 'sliceUpLeft') {
+            createSlices(self.slider, self.settings, vars);
+            timeBuff = 0;
+            i = 0;
+            slices = $('.nivo-slice', self.slider);
+            if (currentEffect === 'sliceUpLeft') {
+                slices = $('.nivo-slice', self.slider);
             }
 
-            // Custom transition as defined by "data-transition" attribute
-            if (vars.currentImage.attr('data-transition')) {
-                currentEffect = vars.currentImage.attr('data-transition');
+            slices.each(function () {
+                var slice = $(this);
+                slice.css({'bottom': '0px'});
+                if (i === self.settings.slices - 1) {
+                    setTimeout(function () {
+                        slice.animate({opacity: '1.0'}, self.settings.animSpeed, '', function () {
+                            self.slider.trigger('nivo:animFinished');
+                        });
+                    }, (100 + timeBuff));
+                } else {
+                    setTimeout(function () {
+                        slice.animate({opacity: '1.0'}, self.settings.animSpeed);
+                    }, (100 + timeBuff));
+                }
+                timeBuff += 50;
+                i++;
+            });
+        } else if (currentEffect === 'sliceUpDown' ||
+            currentEffect === 'sliceUpDownRight' ||
+            currentEffect === 'sliceUpDownLeft') {
+            createSlices(self.slider, self.settings, vars);
+            timeBuff = 0;
+            i = 0;
+            var v = 0;
+            slices = $('.nivo-slice', self.slider);
+            if (currentEffect === 'sliceUpDownLeft') {
+                slices = $('.nivo-slice', self.slider);
             }
 
-            // Run effects
-            vars.running = true;
-            var timeBuff = 0,
-                i = 0,
-                slices = '',
-                firstSlice = '',
-                totalBoxes = '',
-                boxes = '';
-
-            if (currentEffect === 'sliceDown' ||
-                currentEffect === 'sliceDownRight' ||
-                currentEffect === 'sliceDownLeft') {
-                console.log('sliceDownRight');
-                createSlices(self.slider, self.settings, vars);
-                timeBuff = 0;
-                i = 0;
-                slices = $('.nivo-slice', self.slider);
-                if (currentEffect === 'sliceDownLeft') {
-                    slices = $('.nivo-slice', self.slider);
+            slices.each(function () {
+                var slice = $(this);
+                if (i === 0) {
+                    slice.css('top', '0px');
+                    i++;
+                } else {
+                    slice.css('bottom', '0px');
+                    i = 0;
                 }
 
-                slices.each(function () {
-                    var slice = $(this);
-                    slice.css({'top': '0px'});
-                    if (i === self.settings.slices - 1) {
-                        setTimeout(function () {
-                            slice.animate({opacity: '1.0'}, self.settings.animSpeed, '', function () {
-                                self.slider.trigger('nivo:animFinished');
-                            });
-                        }, (100 + timeBuff));
-                    } else {
-                        setTimeout(function () {
-                            slice.animate({opacity: '1.0'}, self.settings.animSpeed);
-                        }, (100 + timeBuff));
-                    }
-                    timeBuff += 50;
-                    i++;
-                });
-            } else if (currentEffect === 'sliceUp' ||
-                currentEffect === 'sliceUpRight' ||
-                currentEffect === 'sliceUpLeft') {
-                createSlices(self.slider, self.settings, vars);
-                timeBuff = 0;
-                i = 0;
-                slices = $('.nivo-slice', self.slider);
-                if (currentEffect === 'sliceUpLeft') {
-                    slices = $('.nivo-slice', self.slider);
+                if (v === self.settings.slices - 1) {
+                    setTimeout(function () {
+                        slice.animate({opacity: '1.0'}, self.settings.animSpeed, '', function () {
+                            self.slider.trigger('nivo:animFinished');
+                        });
+                    }, (100 + timeBuff));
+                } else {
+                    setTimeout(function () {
+                        slice.animate({opacity: '1.0'}, self.settings.animSpeed);
+                    }, (100 + timeBuff));
                 }
+                timeBuff += 50;
+                v++;
+            });
+        } else if (currentEffect === 'fold') {
+            createSlices(self.slider, self.settings, vars);
+            timeBuff = 0;
+            i = 0;
 
-                slices.each(function () {
-                    var slice = $(this);
-                    slice.css({'bottom': '0px'});
-                    if (i === self.settings.slices - 1) {
-                        setTimeout(function () {
-                            slice.animate({opacity: '1.0'}, self.settings.animSpeed, '', function () {
-                                self.slider.trigger('nivo:animFinished');
-                            });
-                        }, (100 + timeBuff));
-                    } else {
-                        setTimeout(function () {
-                            slice.animate({opacity: '1.0'}, self.settings.animSpeed);
-                        }, (100 + timeBuff));
-                    }
-                    timeBuff += 50;
-                    i++;
-                });
-            } else if (currentEffect === 'sliceUpDown' ||
-                currentEffect === 'sliceUpDownRight' ||
-                currentEffect === 'sliceUpDownLeft') {
-                createSlices(self.slider, self.settings, vars);
-                timeBuff = 0;
-                i = 0;
-                var v = 0;
-                slices = $('.nivo-slice', self.slider);
-                if (currentEffect === 'sliceUpDownLeft') {
-                    slices = $('.nivo-slice', self.slider);
+            $('.nivo-slice', self.slider).each(function () {
+                var slice = $(this);
+                var origWidth = slice.width();
+                slice.css({top: '0px', width: '0px'});
+                if (i === self.settings.slices - 1) {
+                    setTimeout(function () {
+                        slice.animate({width: origWidth, opacity: '1.0'}, self.settings.animSpeed, '', function () {
+                            self.slider.trigger('nivo:animFinished');
+                        });
+                    }, (100 + timeBuff));
+                } else {
+                    setTimeout(function () {
+                        slice.animate({width: origWidth, opacity: '1.0'}, self.settings.animSpeed);
+                    }, (100 + timeBuff));
                 }
+                timeBuff += 50;
+                i++;
+            });
+        } else if (currentEffect === 'fade') {
+            createSlices(self.slider, self.settings, vars);
 
-                slices.each(function () {
-                    var slice = $(this);
-                    if (i === 0) {
-                        slice.css('top', '0px');
-                        i++;
-                    } else {
-                        slice.css('bottom', '0px');
-                        i = 0;
-                    }
+            firstSlice = $('.nivo-slice:first', self.slider);
+            firstSlice.css({
+                'width': self.slider.width() + 'px'
+            });
 
-                    if (v === self.settings.slices - 1) {
-                        setTimeout(function () {
-                            slice.animate({opacity: '1.0'}, self.settings.animSpeed, '', function () {
-                                self.slider.trigger('nivo:animFinished');
-                            });
-                        }, (100 + timeBuff));
-                    } else {
-                        setTimeout(function () {
-                            slice.animate({opacity: '1.0'}, self.settings.animSpeed);
-                        }, (100 + timeBuff));
-                    }
-                    timeBuff += 50;
-                    v++;
-                });
-            } else if (currentEffect === 'fold') {
-                createSlices(self.slider, self.settings, vars);
-                timeBuff = 0;
-                i = 0;
+            firstSlice.animate({opacity: '1.0'}, (self.settings.animSpeed * 2), '', function () {
+                self.slider.trigger('nivo:animFinished');
+            });
+        } else if (currentEffect === 'slideInRight') {
+            createSlices(self.slider, self.settings, vars);
 
-                $('.nivo-slice', self.slider).each(function () {
-                    var slice = $(this);
-                    var origWidth = slice.width();
-                    slice.css({top: '0px', width: '0px'});
-                    if (i === self.settings.slices - 1) {
-                        setTimeout(function () {
-                            slice.animate({width: origWidth, opacity: '1.0'}, self.settings.animSpeed, '', function () {
-                                self.slider.trigger('nivo:animFinished');
-                            });
-                        }, (100 + timeBuff));
-                    } else {
-                        setTimeout(function () {
-                            slice.animate({width: origWidth, opacity: '1.0'}, self.settings.animSpeed);
-                        }, (100 + timeBuff));
-                    }
-                    timeBuff += 50;
-                    i++;
-                });
-            } else if (currentEffect === 'fade') {
-                createSlices(self.slider, self.settings, vars);
+            firstSlice = $('.nivo-slice:first', self.slider);
+            firstSlice.css({
+                'width': '0px',
+                'opacity': '1'
+            });
 
-                firstSlice = $('.nivo-slice:first', self.slider);
+            firstSlice.animate({width: self.slider.width() + 'px'}, (self.settings.animSpeed * 2), '', function () {
+                self.slider.trigger('nivo:animFinished');
+            });
+        } else if (currentEffect === 'slideInLeft') {
+            createSlices(self.slider, self.settings, vars);
+
+            firstSlice = $('.nivo-slice:first', self.slider);
+            firstSlice.css({
+                'width': '0px',
+                'opacity': '1',
+                'left': '',
+                'right': '0px'
+            });
+
+            firstSlice.animate({width: self.slider.width() + 'px'}, (self.settings.animSpeed * 2), '', function () {
+                // Reset positioning
                 firstSlice.css({
-                    'width': self.slider.width() + 'px'
+                    'left': '0px',
+                    'right': ''
                 });
+                self.slider.trigger('nivo:animFinished');
+            });
+        } else if (currentEffect === 'boxRandom') {
+            createBoxes(self.slider, self.settings, vars);
 
-                firstSlice.animate({opacity: '1.0'}, (self.settings.animSpeed * 2), '', function () {
-                    self.slider.trigger('nivo:animFinished');
-                });
-            } else if (currentEffect === 'slideInRight') {
-                createSlices(self.slider, self.settings, vars);
+            totalBoxes = self.settings.boxCols * self.settings.boxRows;
+            i = 0;
+            timeBuff = 0;
 
-                firstSlice = $('.nivo-slice:first', self.slider);
-                firstSlice.css({
-                    'width': '0px',
-                    'opacity': '1'
-                });
+            boxes = shuffle($('.nivo-box', self.slider));
+            boxes.each(function () {
+                var box = $(this);
+                if (i === totalBoxes - 1) {
+                    setTimeout(function () {
+                        box.animate({opacity: '1'}, self.settings.animSpeed, '', function () {
+                            self.slider.trigger('nivo:animFinished');
+                        });
+                    }, (100 + timeBuff));
+                } else {
+                    setTimeout(function () {
+                        box.animate({opacity: '1'}, self.settings.animSpeed);
+                    }, (100 + timeBuff));
+                }
+                timeBuff += 20;
+                i++;
+            });
+        } else if (currentEffect === 'boxRain' ||
+            currentEffect === 'boxRainReverse' ||
+            currentEffect === 'boxRainGrow' ||
+            currentEffect === 'boxRainGrowReverse') {
+            createBoxes(self.slider, self.settings, vars);
 
-                firstSlice.animate({width: self.slider.width() + 'px'}, (self.settings.animSpeed * 2), '', function () {
-                    self.slider.trigger('nivo:animFinished');
-                });
-            } else if (currentEffect === 'slideInLeft') {
-                createSlices(self.slider, self.settings, vars);
+            totalBoxes = self.settings.boxCols * self.settings.boxRows;
+            i = 0;
+            timeBuff = 0;
 
-                firstSlice = $('.nivo-slice:first', self.slider);
-                firstSlice.css({
-                    'width': '0px',
-                    'opacity': '1',
-                    'left': '',
-                    'right': '0px'
-                });
-
-                firstSlice.animate({width: self.slider.width() + 'px'}, (self.settings.animSpeed * 2), '', function () {
-                    // Reset positioning
-                    firstSlice.css({
-                        'left': '0px',
-                        'right': ''
-                    });
-                    self.slider.trigger('nivo:animFinished');
-                });
-            } else if (currentEffect === 'boxRandom') {
-                createBoxes(self.slider, self.settings, vars);
-
-                totalBoxes = self.settings.boxCols * self.settings.boxRows;
-                i = 0;
-                timeBuff = 0;
-
-                boxes = shuffle($('.nivo-box', self.slider));
-                boxes.each(function () {
-                    var box = $(this);
-                    if (i === totalBoxes - 1) {
-                        setTimeout(function () {
-                            box.animate({opacity: '1'}, self.settings.animSpeed, '', function () {
-                                self.slider.trigger('nivo:animFinished');
-                            });
-                        }, (100 + timeBuff));
-                    } else {
-                        setTimeout(function () {
-                            box.animate({opacity: '1'}, self.settings.animSpeed);
-                        }, (100 + timeBuff));
-                    }
-                    timeBuff += 20;
-                    i++;
-                });
-            } else if (currentEffect === 'boxRain' ||
-                currentEffect === 'boxRainReverse' ||
-                currentEffect === 'boxRainGrow' ||
+            // Split boxes into 2D array
+            var rowIndex = 0;
+            var colIndex = 0;
+            var box2Darr = [];
+            box2Darr[rowIndex] = [];
+            boxes = $('.nivo-box', self.slider);
+            if (currentEffect === 'boxRainReverse' ||
                 currentEffect === 'boxRainGrowReverse') {
-                createBoxes(self.slider, self.settings, vars);
-
-                totalBoxes = self.settings.boxCols * self.settings.boxRows;
-                i = 0;
-                timeBuff = 0;
-
-                // Split boxes into 2D array
-                var rowIndex = 0;
-                var colIndex = 0;
-                var box2Darr = [];
-                box2Darr[rowIndex] = [];
                 boxes = $('.nivo-box', self.slider);
-                if (currentEffect === 'boxRainReverse' ||
-                    currentEffect === 'boxRainGrowReverse') {
-                    boxes = $('.nivo-box', self.slider);
+            }
+            boxes.each(function () {
+                box2Darr[rowIndex][colIndex] = $(this);
+                colIndex++;
+                if (colIndex === self.settings.boxCols) {
+                    rowIndex++;
+                    colIndex = 0;
+                    box2Darr[rowIndex] = [];
                 }
-                boxes.each(function () {
-                    box2Darr[rowIndex][colIndex] = $(this);
-                    colIndex++;
-                    if (colIndex === self.settings.boxCols) {
-                        rowIndex++;
-                        colIndex = 0;
-                        box2Darr[rowIndex] = [];
-                    }
-                });
+            });
 
-                // Run animation
-                for (var cols = 0; cols < (self.settings.boxCols * 2); cols++) {
-                    var prevCol = cols;
-                    for (var rows = 0; rows < self.settings.boxRows; rows++) {
-                        if (prevCol >= 0 && prevCol < self.settings.boxCols) {
-                            /* Due to some weird JS bug with loop vars
-                             being used in setTimeout, this is wrapped
-                             with an anonymous function call */
-                            (function (row, col, time, i, totalBoxes) {
-                                var box = $(box2Darr[row][col]);
-                                var w = box.width();
-                                var h = box.height();
-                                if (currentEffect === 'boxRainGrow' || currentEffect === 'boxRainGrowReverse') {
-                                    box.width(0).height(0);
-                                }
-                                if (i === totalBoxes - 1) {
-                                    setTimeout(function () {
-                                        box.animate({
-                                            opacity: '1',
-                                            width: w,
-                                            height: h
-                                        }, self.settings.animSpeed / 1.3, '', function () {
-                                            self.slider.trigger('nivo:animFinished');
-                                        });
-                                    }, (100 + time));
-                                } else {
-                                    setTimeout(function () {
-                                        box.animate({opacity: '1', width: w, height: h}, self.settings.animSpeed / 1.3);
-                                    }, (100 + time));
-                                }
-                            })(rows, prevCol, timeBuff, i, totalBoxes);
-                            i++;
-                        }
-                        prevCol--;
+            // Run animation
+            for (var cols = 0; cols < (self.settings.boxCols * 2); cols++) {
+                var prevCol = cols;
+                for (var rows = 0; rows < self.settings.boxRows; rows++) {
+                    if (prevCol >= 0 && prevCol < self.settings.boxCols) {
+                        /* Due to some weird JS bug with loop vars
+                         being used in setTimeout, this is wrapped
+                         with an anonymous function call */
+                        (function (row, col, time, i, totalBoxes) {
+                            var box = $(box2Darr[row][col]);
+                            var w = box.width();
+                            var h = box.height();
+                            if (currentEffect === 'boxRainGrow' || currentEffect === 'boxRainGrowReverse') {
+                                box.width(0).height(0);
+                            }
+                            if (i === totalBoxes - 1) {
+                                setTimeout(function () {
+                                    box.animate({
+                                        opacity: '1',
+                                        width: w,
+                                        height: h
+                                    }, self.settings.animSpeed / 1.3, '', function () {
+                                        self.slider.trigger('nivo:animFinished');
+                                    });
+                                }, (100 + time));
+                            } else {
+                                setTimeout(function () {
+                                    box.animate({opacity: '1', width: w, height: h}, self.settings.animSpeed / 1.3);
+                                }, (100 + time));
+                            }
+                        })(rows, prevCol, timeBuff, i, totalBoxes);
+                        i++;
                     }
-                    timeBuff += 100;
+                    prevCol--;
                 }
+                timeBuff += 100;
             }
         }
 
@@ -714,11 +721,6 @@
             // Trigger the afterChange callback
             self.settings.afterChange.call(this);
         });
-
-    }
-
-    function animations() {
-
     }
 
     function resize() {
