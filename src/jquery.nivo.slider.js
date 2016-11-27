@@ -11,7 +11,7 @@
 
 (function ($) {
     var NivoSlider = function (element, options) {
-        // Defaults are below
+        // Defaults are at the bottom of this file
         var settings = $.extend({}, $.fn.nivoSlider.defaults, options);
 
         // Useful variables. Play carefully.
