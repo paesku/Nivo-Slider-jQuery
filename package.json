@@ -24,6 +24,6 @@
   },
   "scripts": {
     "build": "uglifyjs src/jquery.nivo.slider.js --comments -o dist/jquery.nivo.slider.min.js",
-    "test": "./node_modules/karma/bin/karma start"
+    "test": "karma start"
   }
 }
