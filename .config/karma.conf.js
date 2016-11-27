@@ -11,6 +11,11 @@ module.exports = function(config) {
         ],
         exclude: [
         ],
+        proxies: {
+            '/a.jpg': 'demo/images/nemo.jpg',
+            '/b.jpg': 'demo/images/nemo.jpg',
+            '/c.jpg': 'demo/images/nemo.jpg'
+        },
         preprocessors: {},
         reporters: ['dots'],
         port: 9876,
